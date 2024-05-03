@@ -3,7 +3,9 @@ const app = require("express")();
 let chrome = {};
 let puppeteer;
 
-if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+const isProduction = true
+
+if (isProduction) {
   chrome = require("chrome-aws-lambda");
   puppeteer = require("puppeteer-core");
 } else {
@@ -13,7 +15,7 @@ if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
 app.get("/api", async (req, res) => {
   let options = {};
 
-  if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+  if (isProduction) {
     options = {
       args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
       defaultViewport: chrome.defaultViewport,
@@ -31,6 +33,34 @@ app.get("/api", async (req, res) => {
     res.send(await page.title());
   } catch (err) {
     console.error(err);
+    return null;
+  }
+});
+
+app.get("/", async (req, res) => {
+  let options = {};
+
+  if (isProduction) {
+    options = {
+      args: [...chrome.args, "--hide-scrollbars", "--disable-web-security"],
+      defaultViewport: chrome.defaultViewport,
+      executablePath: await chrome.executablePath,
+      headless: true,
+      ignoreHTTPSErrors: true,
+    };
+  }
+
+  try {
+    if (isProduction) {
+      
+    res.send("using production")
+
+  }else{
+    res.send("using development")
+  }
+
+  } catch (err) {
+    res.send("hello I am mj, theowing error")
     return null;
   }
 });
